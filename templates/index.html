@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en-US" >
+  <head>
+    <title>QRCode Generator</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- SEO Stuff -->
+    <meta name="description" content="Create your own QR Code and use it anywhere!" />
+    <meta name="keywords" content="qrcode, qr code, qr, generator, maker, make, generate, qrcode generator, qrcode maker, make qr code, generate qr code, make qrcode" />
+    <meta name="googlebot" content="index, follow" />
+
+    <!-- Open Graph Tags -->
+    <meta property="og:title" content="QRCode Generator" />
+    <meta property="og:description" content="Create your own QR Code and use it anywhere!" />
+    <meta property="og:image" content="/static/icon.png" />
+
+    <link rel="stylesheet" type="text/css" href="/static/style.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
+    <link rel="icon" type="image/png" href="/static/icon.png" />
+  </head>
+  <body>
+    <form method="post" action="/download"  class="form" autocomplete="off" enctype="multipart/form-data" >
+      <div class="title center">QR Code</div>
+      <div class="subtitle">Let's create your QR Code!</div>
+      
+      <!-- Text to encode -->
+      <div class="input-container ic1">
+        <input id="text" class="input" type="text" placeholder=" " name="text" autocomplete="off" />
+        <div class="cut cut-short"></div>
+        <label for="text" class="placeholder">Text</label>
+      </div>
+      
+      <!-- Fill Color -->
+      <div class="input-container ic2">
+        <input id="fill" class="input" type="text" placeholder=" " name="fill"
+        title="E.G. 200, 10, 70" 
+        pattern="\b(1?[0-9]{1,2}|2[0-4][0-9]|25[0-5])\b, \b(1?[0-9]{1,2}|2[0-4][0-9]|25[0-5])\b, \b(1?[0-9]{1,2}|2[0-4][0-9]|25[0-5])\b" />
+        
+        <div class="cut cut-long"></div>
+        <label for="fill" class="placeholder">Fill Color '(R, G, B)'</label>
+      </div>
+      
+      <!-- Background Color -->
+      <div class="input-container ic2">
+        <input id="bg" class="input" type="text" placeholder=" " name="bg"
+        title="E.G. 20, 190, 88" 
+        pattern="\b(1?[0-9]{1,2}|2[0-4][0-9]|25[0-5])\b, \b(1?[0-9]{1,2}|2[0-4][0-9]|25[0-5])\b, \b(1?[0-9]{1,2}|2[0-4][0-9]|25[0-5])\b" />
+        
+        <div class="cut cut-long"></div>
+        <label for="bg" class="placeholder">BG Color '(R, G, B)'</label>
+      </div>
+      
+      <!-- Image for QR Code-->
+      <div class="input-container ic2">
+        <input hidden type="file" accept="image/*"  placeholder=" " name="img" onchange="let i = document.querySelector('#img'); i.value = this.files[0].name; i.blur()"/>
+        <input readonly id="img" class="input" type="text" placeholder=" " onfocus="document.querySelector('input[type=\'file\'').click()"/>
+        <div class="cut"></div>
+        <label for="img" class="placeholder">Use Image</label>
+      </div>
+      
+      <button type="submit" class="submit">Create</button>
+    </form>
+    
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script type="text/javascript" src="static/script.js"></script>
+  </body>
+</html>
