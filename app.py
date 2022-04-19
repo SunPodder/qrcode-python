@@ -2,7 +2,9 @@ from flask import Flask, send_file, render_template, request
 import qrcode, io, time
 from PIL import Image
 from qrcode.image.styledpil import StyledPilImage
-from qrcode.image.styles.colormasks import VerticalGradiantColorMask
+from qrcode.image.styles.colormasks import SolidFillColorMask
+from qrcode.image.styles.moduledrawers import *
+from os import environ
 
 
 app = Flask(__name__)
@@ -19,6 +21,8 @@ def download():
   text = (request.form.get("text") or "QRCode Generator - SunPodder")
   fill_color = (request.form.get("fill") or (0, 0, 0))
   back_color = (request.form.get("bg") or (255, 255, 255))
+  
+  style = request.form.get("style")
   
   # image to use in the center of the QR Code (Optional)
   uploaded_img = request.files["img"]
@@ -41,6 +45,7 @@ def download():
     box_size=20,
     border=4
   )
+  print(style)
   
   #adds main data
   qr.add_data(text)
@@ -49,34 +54,40 @@ def download():
   if not uploaded_img:
     #simple QR Code
     #supports color mask without any issue
-    img = qr.make_image(fill_color=fill_color, back_color=back_color)
+    img = qr.make_image(
+      fill_color=fill_color,
+      back_color=back_color,
+      image_factory=StyledPilImage,
+      module_drawer=eval(f"{style}Drawer()")
+    )
     
-  elif (uploaded_img and (fill_color != (0, 0, 0))):
+  elif (uploaded_img and ((fill_color != (0, 0, 0)) or (back_color != (255, 255, 255)))):
     #only use color mask with image 
-    #if color is specified by the user
+    #if color a is specified by the user
     #has performance issue
     img = qr.make_image(
-            color_mask=VerticalGradiantColorMask(
+            color_mask=SolidFillColorMask(
               back_color=back_color,
-              top_color=fill_color,
-              bottom_color=fill_color
+              front_color=fill_color,
             ),
+            module_drawer=eval(f"{style}Drawer()"),
             image_factory=StyledPilImage,
             embeded_image=Image.open(
               io.BytesIO(uploaded_img.read())
             )
           )
-          
   else:
     #skip color mask
     img = qr.make_image(
             image_factory=StyledPilImage,
             embeded_image=Image.open(
               io.BytesIO(uploaded_img.read())
-            )
+            ),
+            module_drawer=eval(f"{style}Drawer()")
           )
   
   buf = io.BytesIO()
+  #save image in ByteStream instead of file
   img.save(buf, format="PNG")
   buf.seek(0)
   
@@ -90,4 +101,4 @@ def download():
   )
 
 
-app.run(host="0.0.0.0", port=3000, debug=True)
+app.run(host="0.0.0.0", port=(int(environ.get("PORT", 3000))), debug=True)
