@@ -1,5 +1,5 @@
 from flask import Flask, send_file, render_template, request
-import qrcode, io, time
+import qrcode, io, time, json, base64
 from PIL import Image
 from qrcode.image.styledpil import StyledPilImage
 from qrcode.image.styles.colormasks import SolidFillColorMask
@@ -10,32 +10,7 @@ from os import environ
 app = Flask(__name__)
 
 
-@app.route("/")
-def home():
-  
-  return render_template("index.html")
-
-
-@app.route("/download", methods=["POST"])
-def download():
-  text = (request.form.get("text") or "QRCode Generator - SunPodder")
-  fill_color = (request.form.get("fill") or (0, 0, 0))
-  back_color = (request.form.get("bg") or (255, 255, 255))
-  
-  style = request.form.get("style")
-  
-  # image to use in the center of the QR Code (Optional)
-  uploaded_img = request.files["img"]
-  
-  
-  #convert to Tuple
-  if type(back_color) == type("str"):
-    back_color = tuple(map(int, back_color.split(",")))
-  
-  if type(fill_color) == type("str"):
-    fill_color = tuple(map(int, fill_color.split(",")))
-  
-  
+def makeQrCode(text, fill_color, back_color, style, uploaded_img=None):
   #basic configuration
   #see QRCode Docs
   #I don't know which does what
@@ -45,7 +20,6 @@ def download():
     box_size=20,
     border=4
   )
-  print(style)
   
   #adds main data
   qr.add_data(text)
@@ -85,6 +59,73 @@ def download():
             ),
             module_drawer=eval(f"{style}Drawer()")
           )
+          
+  return img
+
+
+
+@app.route("/")
+def home():
+  
+  return render_template("index.html")
+  
+@app.route("/api", methods=["POST"])
+def api():
+  text = (request.form.get("text") or "QRCode Generator - SunPodder")
+  fill_color = (request.form.get("fill") or (0, 0, 0))
+  back_color = (request.form.get("bg") or (255, 255, 255))
+  
+  style = request.form.get("style")
+  
+  # image to use in the center of the QR Code (Optional)
+  uploaded_img = request.files["img"]
+  
+  
+  #convert to Tuple
+  if type(back_color) == type("str"):
+    back_color = tuple(map(int, back_color.split(",")))
+  
+  if type(fill_color) == type("str"):
+    fill_color = tuple(map(int, fill_color.split(",")))
+  
+  img = makeQrCode(text, fill_color, back_color, style, uploaded_img)
+  
+  buf = io.BytesIO()
+  #save image in ByteStream instead of file
+  img.save(buf, format="PNG")
+  buf.seek(0)
+  
+  img_str = "data:image/png;base64," + str(base64.b64encode(buf.getvalue()).decode("utf-8"))
+  
+  response = {
+    "code": 200,
+    "image": img_str,
+    "name": f"Sun_QRCode_Generator_{str(time.time()).split('.')[0]}.png"
+  }
+  return (json.dumps(response))
+
+
+@app.route("/download", methods=["POST"])
+def download():
+  text = (request.form.get("text") or "QRCode Generator - SunPodder")
+  fill_color = (request.form.get("fill") or (0, 0, 0))
+  back_color = (request.form.get("bg") or (255, 255, 255))
+  
+  style = request.form.get("style")
+  
+  # image to use in the center of the QR Code (Optional)
+  uploaded_img = request.files["img"]
+  
+  
+  #convert to Tuple
+  if type(back_color) == type("str"):
+    back_color = tuple(map(int, back_color.split(",")))
+  
+  if type(fill_color) == type("str"):
+    fill_color = tuple(map(int, fill_color.split(",")))
+  
+  img = makeQrCode(text, fill_color, back_color, style, uploaded_img)
+
   
   buf = io.BytesIO()
   #save image in ByteStream instead of file
